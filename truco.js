@@ -19,6 +19,7 @@
   const LEVEL_NAMES = { 3: 'TRUCO', 6: 'SEIS', 9: 'NOVE', 12: 'DOZE' };
   const NEXT_LEVEL = { 1: 3, 3: 6, 6: 9, 9: 12 };
   const MATCH_TARGET = 12;
+  const IRON_HAND_SCORE = 11; // truco mineiro: quem chega a 11 joga a "mão de ferro" (sem pedir truco, vale 1)
 
   function buildDeck(){
     const deck = [];
@@ -47,6 +48,7 @@
 
   function other(p){ return p === 1 ? 2 : 1; }
   function availableCallLevel(stake){ return NEXT_LEVEL[stake] || null; }
+  function ironHandActive(){ return state.scores[1] >= IRON_HAND_SCORE || state.scores[2] >= IRON_HAND_SCORE; }
 
   // ---- resultado da mão a partir das rodadas já jogadas ----
 
@@ -225,6 +227,7 @@
     const hand = state.hand;
     if (!hand || hand.handOver || state.matchOver || hand.pendingCall) return;
     if (hand.turnPlayer !== playerNum) return;
+    if (ironHandActive()) return;
     const level = availableCallLevel(hand.stake);
     if (!level) return;
 
@@ -328,7 +331,7 @@
     const hand = state.hand;
     const info = handStrengthInfo(hand.hands[2], hand.manilhaRank);
     const level = availableCallLevel(hand.stake);
-    if (level && Math.random() < callProbability(info, hand, 2)){
+    if (level && !ironHandActive() && Math.random() < callProbability(info, hand, 2)){
       callTruco(2);
       return;
     }
@@ -459,6 +462,7 @@
     const stakeEl = document.createElement('div');
     stakeEl.className = 'mono truco-stake';
     stakeEl.textContent = 'VALENDO ' + hand.stake;
+    if (ironHandActive()) stakeEl.textContent += ' · MÃO DE FERRO';
     tableEl.appendChild(stakeEl);
 
     const oppRow = document.createElement('div');
@@ -563,8 +567,8 @@
         statusEl.textContent = playerLabel(hand.pendingCall.caller) + ' pediu ' + levelName + '! Aguardando ' + waitingLabel + '...';
       }
     } else if (canCurrentViewerAct()){
-      statusEl.textContent = 'Sua vez — jogue uma carta ou peça truco';
-      const level = availableCallLevel(hand.stake);
+      const level = ironHandActive() ? null : availableCallLevel(hand.stake);
+      statusEl.textContent = ironHandActive() ? 'Mão de ferro — sem truco, jogue uma carta' : 'Sua vez — jogue uma carta ou peça truco';
       if (level){
         const callBtn = document.createElement('button');
         callBtn.className = 'btn btn-ghost mono';
