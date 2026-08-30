@@ -133,7 +133,7 @@
       currentTrickPlays: {},
       currentTrickLeader: leader,
       turnPlayer: leader,
-      stake: 1,
+      stake: ironHandActive() ? 3 : 1,
       pendingCall: null,
       handOver: false,
       winner: null,
