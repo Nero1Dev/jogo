@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048 — Nairon Dalmaso</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header>
+    <nav><span class="mono">2048</span></nav>
+  </header>
+
+  <!-- fixo na tela e não no header: assim dá pra animar a posição dele
+       junto com a abertura do menu, terminando encostado na borda do painel -->
+  <button class="hamburger-menu" id="hamburgerMenu" aria-label="Abrir menu" aria-expanded="false" aria-controls="drawer">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <!-- menu lateral: efeito inspirado em reactbits.dev/components/card-nav (cards),
+       reimplementado em JS puro (sem React/GSAP) como um drawer que desliza pela lateral -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <span class="mono drawer-title">MENU</span>
+    </div>
+
+    <div class="drawer-cards">
+      <div class="nav-card nav-card-earth">
+        <div class="nav-card-label mono">JOGOS</div>
+        <div class="nav-card-links">
+          <a class="nav-card-link mono" href="index.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Início
+          </a>
+          <a class="nav-card-link mono" href="velha.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Jogo da Velha
+          </a>
+          <a class="nav-card-link mono" href="moeda.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Cara ou Coroa
+          </a>
+          <a class="nav-card-link mono" href="ligue4.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Ligue 4
+          </a>
+          <a class="nav-card-link mono" href="bomba.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Bomba
+          </a>
+          <a class="nav-card-link mono" href="xadrez.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Xadrez
+          </a>
+          <a class="nav-card-link mono" href="campo-minado.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Campo Minado
+          </a>
+          <a class="nav-card-link mono" href="damas.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Damas
+          </a>
+          <a class="nav-card-link mono" href="memoria.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Jogo da Memória
+          </a>
+          <a class="nav-card-link mono" href="truco.html">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            Truco
+          </a>
+          <span class="nav-card-link nav-card-link-soon mono">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Mais em breve
+          </span>
+        </div>
+      </div>
+      <div class="nav-card nav-card-night">
+        <div class="nav-card-label mono">PORTFÓLIO</div>
+        <div class="nav-card-links">
+          <a class="nav-card-link mono" href="https://nairondalmaso.com.br" target="_blank" rel="noopener">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            nairondalmaso.com.br
+          </a>
+        </div>
+      </div>
+      <div class="nav-card nav-card-gold">
+        <div class="nav-card-label mono">CÓDIGO</div>
+        <div class="nav-card-links">
+          <a class="nav-card-link mono" href="https://github.com/Nero1Dev" target="_blank" rel="noopener">
+            <svg class="nav-card-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="wrap">
+    <section class="intro" data-reveal>
+      <span class="eyebrow mono">// JUNTE OS NÚMEROS</span>
+      <h1 class="display"><span class="hl">2048</span></h1>
+    </section>
+
+    <section class="g2048-game" data-reveal>
+
+      <div class="status-bar">
+        <div class="g2048-scores mono">
+          <div class="g2048-score-box">
+            <span class="g2048-score-value" id="scoreValue">0</span>
+            <span class="g2048-score-label">PONTOS</span>
+          </div>
+          <div class="g2048-score-box">
+            <span class="g2048-score-value" id="bestValue">0</span>
+            <span class="g2048-score-label">RECORDE</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost mono" id="resetBtn">
+          REINICIAR
+        </button>
+      </div>
+
+      <p class="mono g2048-help" id="g2048Help">Use as setas do teclado (ou arraste no celular). Peças iguais se juntam — chegue ao 2048!</p>
+
+      <div class="g2048-board" id="g2048Board" aria-label="Tabuleiro do 2048"></div>
+
+    </section>
+  </main>
+
+  <footer>
+    <p class="foot-credit mono">
+      Desenvolvido por <a href="https://github.com/Nero1Dev" target="_blank" rel="noopener">Nero1dev</a>
+    </p>
+  </footer>
+
+  <script src="nav.js"></script>
+  <script src="2048.js"></script>
+</body>
+</html>
