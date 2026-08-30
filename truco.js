@@ -94,6 +94,9 @@
   const handoffOverlay = document.getElementById('handoffOverlay');
   const handoffTitleEl = document.getElementById('handoffTitle');
   const handoffRevealBtn = document.getElementById('handoffRevealBtn');
+  const startOverlay = document.getElementById('startOverlay');
+  const startDuoBtn = document.getElementById('startDuoBtn');
+  const startCpuBtn = document.getElementById('startCpuBtn');
 
   let mode = 'duo';
   let viewingPlayer = null; // só usado no modo duo (pass-the-device)
@@ -605,6 +608,13 @@
     newMatch();
   }
 
+  function startMatch(chosenMode){
+    mode = chosenMode;
+    modeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+    startOverlay.classList.remove('active');
+    newMatch();
+  }
+
   resetBtn.addEventListener('click', onResetClick);
   modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
   cancelResetBtn.addEventListener('click', () => confirmOverlay.classList.remove('active'));
@@ -612,8 +622,10 @@
     confirmOverlay.classList.remove('active');
     newMatch();
   });
+  startDuoBtn.addEventListener('click', () => startMatch('duo'));
+  startCpuBtn.addEventListener('click', () => startMatch('cpu'));
 
-  newMatch();
+  startOverlay.classList.add('active');
 
   } catch (err){
     console.error(err);
