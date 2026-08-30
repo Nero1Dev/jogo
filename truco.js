@@ -15,15 +15,21 @@
   const SUITS = ['ouros', 'espadas', 'copas', 'paus'];
   const SUIT_SYMBOL = { ouros: '♦', espadas: '♠', copas: '♥', paus: '♣' };
   const SUIT_VALUE = { ouros: 0, espadas: 1, copas: 2, paus: 3 }; // ordem da manilha: paus > copas > espadas > ouros
-  const RANKS = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
+  const RANK_SETS = {
+    padrao: ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'],
+    curto: ['Q', 'J', 'K', 'A', '2', '3'] // baralho curto: só figura, A, 2 e 3
+  };
   const LEVEL_NAMES = { 3: 'TRUCO', 6: 'SEIS', 9: 'NOVE', 12: 'DOZE' };
   const NEXT_LEVEL = { 1: 3, 3: 6, 6: 9, 9: 12 };
   const MATCH_TARGET = 12;
   const IRON_HAND_SCORE = 11; // truco mineiro: quem chega a 11 joga a "mão de ferro" (sem pedir truco, vale 1)
 
+  let deckVariant = 'padrao';
+  function ranks(){ return RANK_SETS[deckVariant]; }
+
   function buildDeck(){
     const deck = [];
-    SUITS.forEach(suit => RANKS.forEach(rank => deck.push({ rank, suit })));
+    SUITS.forEach(suit => ranks().forEach(rank => deck.push({ rank, suit })));
     return deck;
   }
 
@@ -37,13 +43,13 @@
   }
 
   function manilhaRankFor(viraRank){
-    const idx = RANKS.indexOf(viraRank);
-    return RANKS[(idx + 1) % RANKS.length];
+    const idx = ranks().indexOf(viraRank);
+    return ranks()[(idx + 1) % ranks().length];
   }
 
   function cardStrength(card, manilhaRank){
     if (card.rank === manilhaRank) return 100 + SUIT_VALUE[card.suit];
-    return RANKS.indexOf(card.rank);
+    return ranks().indexOf(card.rank);
   }
 
   function other(p){ return p === 1 ? 2 : 1; }
@@ -82,7 +88,8 @@
 
   const tableEl = document.getElementById('trucoTable');
   const statusEl = document.getElementById('trucoStatus');
-  const modeBtns = Array.from(document.querySelectorAll('.mode-btn'));
+  const modeBtns = Array.from(document.querySelectorAll('[data-mode]'));
+  const deckBtns = Array.from(document.querySelectorAll('[data-deck]'));
   const resetBtn = document.getElementById('resetBtn');
   const p1LabelEl = document.getElementById('p1Label');
   const p1ScoreEl = document.getElementById('p1Score');
@@ -280,7 +287,7 @@
     cards.forEach(c => {
       const s = cardStrength(c, manilhaRank);
       if (s >= 100) strongCount += 2;
-      else if (s >= RANKS.indexOf('A')) strongCount += 1;
+      else if (s >= ranks().indexOf('A')) strongCount += 1;
     });
     return { strongCount };
   }
@@ -608,6 +615,14 @@
     newMatch();
   }
 
+  function setDeck(newDeck){
+    if (newDeck === deckVariant) return;
+    deckVariant = newDeck;
+    deckBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.deck === deckVariant));
+    viewingPlayer = null;
+    newMatch();
+  }
+
   function startMatch(chosenMode){
     mode = chosenMode;
     modeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
@@ -617,6 +632,7 @@
 
   resetBtn.addEventListener('click', onResetClick);
   modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+  deckBtns.forEach(btn => btn.addEventListener('click', () => setDeck(btn.dataset.deck)));
   cancelResetBtn.addEventListener('click', () => confirmOverlay.classList.remove('active'));
   confirmResetBtn.addEventListener('click', () => {
     confirmOverlay.classList.remove('active');
