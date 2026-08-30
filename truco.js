@@ -23,6 +23,7 @@
   const NEXT_LEVEL = { 1: 3, 3: 6, 6: 9, 9: 12 };
   const MATCH_TARGET = 12;
   const IRON_HAND_SCORE = 11; // truco mineiro: quem chega a 11 joga a "mão de ferro" (sem pedir truco, vale 1)
+  const TRICK_PAUSE_MS = 1800; // segura as cartas jogadas na mesa antes de limpar pra próxima rodada
 
   let deckVariant = 'padrao';
   function ranks(){ return RANK_SETS[deckVariant]; }
@@ -121,7 +122,7 @@
   }
 
   function canCurrentViewerAct(){
-    if (!state.hand || state.hand.handOver || state.matchOver) return false;
+    if (!state.hand || state.hand.handOver || state.matchOver || state.hand.trickPause) return false;
     if (mode === 'cpu') return state.hand.turnPlayer === 1;
     return state.hand.turnPlayer === viewingPlayer && !handoffPending;
   }
@@ -191,24 +192,32 @@
     const s2 = cardStrength(plays[follower], hand.manilhaRank);
     const winner = s1 > s2 ? leader : (s2 > s1 ? follower : 'tie');
 
-    hand.tricks.push({ leader, plays: { ...plays }, winner });
-    hand.currentTrickPlays = {};
-
-    const outcome = evaluateHandOutcome(hand.tricks);
-    if (outcome){
-      endHand(outcome, hand.stake);
-      return;
-    }
-    if (hand.tricks.length >= 3){
-      // empate triplo — caso raríssimo: prioridade pra quem abriu a 1ª rodada
-      endHand(hand.tricks[0].leader, hand.stake);
-      return;
-    }
-
-    const nextLeader = winner === 'tie' ? leader : winner;
-    hand.currentTrickLeader = nextLeader;
-    hand.turnPlayer = nextLeader;
+    const trick = { leader, plays: { ...plays }, winner };
+    hand.tricks.push(trick);
+    hand.trickPause = trick; // segura as cartas na mesa um instante antes de limpar/avançar
     afterStateChange();
+
+    setTimeout(() => {
+      if (state.hand !== hand) return; // mão foi trocada/reiniciada enquanto esperava
+      hand.trickPause = null;
+      hand.currentTrickPlays = {};
+
+      const outcome = evaluateHandOutcome(hand.tricks);
+      if (outcome){
+        endHand(outcome, hand.stake);
+        return;
+      }
+      if (hand.tricks.length >= 3){
+        // empate triplo — caso raríssimo: prioridade pra quem abriu a 1ª rodada
+        endHand(hand.tricks[0].leader, hand.stake);
+        return;
+      }
+
+      const nextLeader = winner === 'tie' ? leader : winner;
+      hand.currentTrickLeader = nextLeader;
+      hand.turnPlayer = nextLeader;
+      afterStateChange();
+    }, TRICK_PAUSE_MS);
   }
 
   function playCard(playerNum, cardIndex){
@@ -380,7 +389,7 @@
 
   function robotAct(){
     const hand = state.hand;
-    if (!hand || hand.handOver || state.matchOver) return;
+    if (!hand || hand.handOver || state.matchOver || hand.trickPause) return;
     if (hand.pendingCall){
       if (hand.turnPlayer === 2) robotRespondToCall();
       return;
@@ -392,10 +401,10 @@
   function maybeRobotAct(){
     if (mode !== 'cpu' || state.matchOver) return;
     const hand = state.hand;
-    if (!hand || hand.handOver) return;
+    if (!hand || hand.handOver || hand.trickPause) return;
     if (hand.turnPlayer !== 2) return;
     setTimeout(() => {
-      if (mode !== 'cpu' || !state.hand || state.hand.handOver || state.matchOver) return;
+      if (mode !== 'cpu' || !state.hand || state.hand.handOver || state.matchOver || state.hand.trickPause) return;
       robotAct();
     }, 500 + Math.random() * 700);
   }
@@ -548,6 +557,10 @@
       btn.textContent = 'PRÓXIMA MÃO';
       btn.addEventListener('click', nextHand);
       actions.appendChild(btn);
+    } else if (hand.trickPause){
+      statusEl.textContent = hand.trickPause.winner === 'tie'
+        ? 'Rodada empatada'
+        : playerLabel(hand.trickPause.winner) + ' venceu a rodada';
     } else if (hand.pendingCall){
       const levelName = LEVEL_NAMES[hand.pendingCall.level];
       if (canCurrentViewerAct()){
